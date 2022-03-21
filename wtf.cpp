@@ -11,11 +11,12 @@ std::string run_command(const std::string& cmd)
     std::array<char, 256> buff;
     std::string result;
 
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd.c_str(), "r"), pclose);
+    std::string cmd_redirected_stderr = cmd + " 2>&1 ";
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd_redirected_stderr.c_str(), "r"), pclose);
 
     if (!pipe)
     {
-        std::cout << "Couldn't run command: " << cmd << std::endl;
+        std::cout << "Couldn't run command: " << cmd_redirected_stderr << std::endl;
         exit(1);
     }
 
@@ -89,6 +90,11 @@ std::string get_description(std::string& bin)
         }
     }
 
+    if (result.empty())
+    {
+        result += "\t No manual entries for your bin.";
+    }
+
     return result;
 
 }
@@ -101,14 +107,15 @@ void print_usage()
 void pretty_print(std::vector<std::string>& cmds, std::vector<std::string>& outputs, std::string& bin)
 {
     std::stringstream prettified;
+    std::string description = get_description(bin);
+    
     for (int i = 0; i < cmds.size(); ++i)
     {
         prettified << greenify("* " + cmds[i]) << " => \n"
             << "\t" << outputs[i];
     }
 
-    prettified << greenify("* Description") << " => \n" << get_description(bin);
-
+    prettified << greenify("* Description") << " => \n" << description;
     std::cout << prettified.str() << std::endl;
 }
 
