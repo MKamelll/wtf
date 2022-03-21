@@ -27,26 +27,22 @@ std::string run_command(const std::string& cmd)
     return result;
 }
 
-std::vector<std::string> output_lines(const std::string& out)
+std::vector<std::string> run_command_list(std::vector<std::string>& cmds, std::string& bin)
 {
     std::vector<std::string> result;
-    
-    std::stringstream ss(out);
-    std::string line;
-
-    while (std::getline(ss, line, '\n'))
+    for (auto& cmd : cmds)
     {
-        result.push_back(line);
+        std::string out = run_command(cmd + " " + bin);
+        result.push_back(out);
     }
 
     return result;
-
 }
 
-std::string echo_green(const std::string s)
+std::string greenify(const std::string s)
 {
     std::stringstream ss;
-    ss << "echo " << "\u001b[32m" << "\"" << s << "\"" << "\u001b[0m";
+    ss << "\u001b[32m"  << s << "\u001b[0m";
     
     return ss.str();
 }
@@ -79,7 +75,7 @@ std::string get_description(std::string& bin)
     std::size_t found = out.str().find(description);
     if (found != std::string::npos)
     {
-        std::size_t startpos = found + description.length() + 1;
+        std::size_t startpos = found + description.size() + 1;
         out.seekg(startpos);
 
         std::string line;
@@ -87,6 +83,7 @@ std::string get_description(std::string& bin)
         {
             if (line.empty())
                 break;
+            result += "\t";
             result += triml(line);
             result += "\n";
         }
@@ -101,6 +98,20 @@ void print_usage()
     std::cout << "USAGE: wtf <bin name>" << std::endl;
 }
 
+void pretty_print(std::vector<std::string>& cmds, std::vector<std::string>& outputs, std::string& bin)
+{
+    std::stringstream prettified;
+    for (int i = 0; i < cmds.size(); ++i)
+    {
+        prettified << greenify("* " + cmds[i]) << " => \n"
+            << "\t" << outputs[i];
+    }
+
+    prettified << greenify("* Description") << " => \n" << get_description(bin);
+
+    std::cout << prettified.str() << std::endl;
+}
+
 int main(int argc, char *argv[])
 {  
     if (argc < 2)
@@ -109,21 +120,12 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    //TODO: Add --help info
-    //FIXME: errors with which and error appear wrong if
-    // nothing with the name in path 
     std::string bin(argv[1]);
     
-    std::string which("which ");
-    std::string whereis("whereis ");
-    std::string man("man ");
+    std::vector<std::string> cmds({"which", "whereis"});
+    std::vector<std::string> outputs = run_command_list(cmds, bin);
 
-    std::stringstream cmd;
-    cmd << echo_green(" - Which =>\n") << ";" << which << bin << ";" << echo_green("\n - Whereis =>\n") << ";" << whereis << bin << ";" << echo_green("\n - Description =>");
+    pretty_print(cmds, outputs, bin);
 
-    std::cout << run_command(cmd.str()) << std::endl;
-    
-    std::cout << get_description(bin) << std::endl;
-    
     return 0;
 }
