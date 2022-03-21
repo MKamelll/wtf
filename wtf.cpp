@@ -104,6 +104,12 @@ void print_usage()
     std::cout << "USAGE: wtf <bin name>" << std::endl;
 }
 
+void print_usage_sarcastically()
+{
+    std::cout << "Are you serious?" << std::endl;
+    print_usage();
+}
+
 void pretty_print(std::vector<std::string>& cmds, std::vector<std::string>& outputs, std::string& bin)
 {
     std::stringstream prettified;
@@ -126,8 +132,16 @@ int main(int argc, char *argv[])
         print_usage();
         exit(1);
     }
+    
+    std::string arg(argv[1]);
 
-    std::string bin(argv[1]);
+    if (arg == "--help" || arg == "-h")
+    {
+        print_usage_sarcastically();
+        exit(0);
+    }
+    
+    std::string bin(arg);
     
     std::vector<std::string> cmds({"which", "whereis"});
     std::vector<std::string> outputs = run_command_list(cmds, bin);
