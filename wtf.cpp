@@ -115,7 +115,7 @@ void pretty_print(std::vector<std::string>& cmds, std::vector<std::string>& outp
     std::stringstream prettified;
     std::string description = get_description(bin);
     
-    for (int i = 0; i < cmds.size(); ++i)
+    for (size_t i = 0; i < cmds.size(); ++i)
     {
         prettified << greenify("* " + cmds[i]) << " => \n"
             << "\t" << outputs[i];
